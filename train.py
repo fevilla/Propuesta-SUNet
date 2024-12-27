@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-from arch.arch import STASUNet
+from arch.arch import PCDUnet
 import time
 import os
 import glob
@@ -13,8 +13,8 @@ import yaml
 from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='Main code')
-parser.add_argument("--config", default='config/STASUNet.yml', type=str, help="training config file")
-parser.add_argument('--resultDir', type=str, default='STASUNet', help='save output location')
+parser.add_argument("--config", default='config/PCDUnet.yml', type=str, help="training config file")
+parser.add_argument('--resultDir', type=str, default='PCDUnet', help='save output location')
 parser.add_argument('--savemodelname', type=str, default='model')
 parser.add_argument('--retrain', action='store_true')
 args = parser.parse_args()
@@ -58,8 +58,8 @@ def train():
     if not os.path.exists(resultDirOut):
         os.mkdir(resultDirOut)
 
-    if config.model.network=='STASUNet':
-        model = STASUNet(num_in_ch=config.model.num_in_ch,num_out_ch=config.model.num_out_ch,num_feat=config.model.num_feat,num_frame=config.dataset.num_frames,deformable_groups=config.model.deformable_groups,num_extract_block=config.model.num_extract_block,
+    if config.model.network=='PCDUnet':
+        model = PCDUnet(num_in_ch=config.model.num_in_ch,num_out_ch=config.model.num_out_ch,num_feat=config.model.num_feat,num_frame=config.dataset.num_frames,deformable_groups=config.model.deformable_groups,num_extract_block=config.model.num_extract_block,
                         num_reconstruct_block=config.model.num_reconstruct_block,center_frame_idx=None,hr_in=config.model.hr_in,img_size=config.dataset.image_size,patch_size=config.model.patch_size,embed_dim=config.model.embed_dim, depths=config.model.depths,num_heads=config.model.num_heads,
                         window_size = config.model.window_size,patch_norm=config.model.patch_norm,final_upsample="Dual up-sample")
     else:

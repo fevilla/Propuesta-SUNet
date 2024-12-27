@@ -6,7 +6,7 @@ from arch.arch_enhance import *
 from arch.arch_align import PCDAlignment
 
 
-class STASUNet(nn.Module):
+class PCDUnet(nn.Module):
     """ STA-SUNet for low-light video enhancement
 
     Args:
@@ -46,7 +46,7 @@ class STASUNet(nn.Module):
                  window_size = 7,
                  patch_norm=False,
                  final_upsample="Dual up-sample"):
-        super(STASUNet, self).__init__()
+        super(PCDUnet, self).__init__()
         if center_frame_idx is None:
             self.center_frame_idx = num_frame // 2
         else:

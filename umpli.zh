@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Define los alias
+alias my_ls='echo "Listando archivos en este directorio..." && ls'
+alias my_ps='echo "Mostrando procesos en ejecución..." && ps aux'
+alias my_pwd='echo "Mostrando el directorio actual..." && pwd'
+
+# Usa los alias en el script
+my_ls
+my_ps
+my_pwd
