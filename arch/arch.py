@@ -5,6 +5,28 @@ from arch.arch_util import ResidualBlockNoBN, make_layer
 from arch.arch_enhance import *
 from arch.arch_align import PCDAlignment
 
+class DualUpsampling(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(DualUpsampling, self).__init__()
+        self.pixel_shuffle = nn.PixelShuffle(2)
+        self.conv1 = nn.Conv2d(in_channels // 4, out_channels, 3, 1, 1)
+
+        self.transposed_conv = nn.ConvTranspose2d(in_channels, out_channels, 4, 2, 1)
+
+        self.fusion = nn.Conv2d(out_channels * 2, out_channels, 3, 1, 1)
+
+    def forward(self, x):
+        ps_output = self.pixel_shuffle(x)
+        ps_output = self.conv1(ps_output)
+
+        transposed_output = self.transposed_conv(x)
+
+        combined = torch.cat([ps_output, transposed_output], dim=1)
+        output = self.fusion(combined)
+
+        return output
+
+
 
 class PCDUnet(nn.Module):
     """ STA-SUNet for low-light video enhancement
@@ -63,18 +85,14 @@ class PCDUnet(nn.Module):
         self.conv_l3_1 = nn.Conv2d(num_feat, num_feat, 3, 2, 1)
         self.conv_l3_2 = nn.Conv2d(num_feat, num_feat, 3, 1, 1)
 
-        '''Feature alignment module'''
         self.pcd_align = PCDAlignment(num_feat=num_feat, deformable_groups=deformable_groups)
         self.fusion = nn.Conv2d(num_frame * num_feat, num_feat, 1, 1)
 
         # reconstruction
         self.reconstruction = make_layer(ResidualBlockNoBN, num_reconstruct_block, num_feat=num_feat)
-        # upsample
-        self.upconv1 = nn.Conv2d(num_feat, num_feat, 3, 1, 1)
-        self.upconv2 = nn.Conv2d(num_feat, num_feat, 3, 1, 1)
-        self.pixel_shuffle = nn.PixelShuffle(2)
-        self.conv_hr = nn.Conv2d(num_feat, num_feat, 3, 1, 1)
-        self.conv_last = nn.Conv2d(num_feat, 3, 3, 1, 1)
+        # Dual Upsampling
+        self.dual_upsampling = DualUpsampling(in_channels=num_in_ch, out_channels=3)
+
 
         # activation function
         self.lrelu = nn.LeakyReLU(negative_slope=0.1, inplace=True)
@@ -176,8 +194,6 @@ class PCDUnet(nn.Module):
     def forward_features(self, x):
         residual = x
         x = self.patch_embed(x)
-        # if self.ape:
-        #     x = x + self.absolute_pos_embed
         x = self.pos_drop(x)
         x_downsample = []
 
@@ -185,7 +201,7 @@ class PCDUnet(nn.Module):
             x_downsample.append(x)
             x = layer(x)
 
-        x = self.norm(x)  # B L C
+        x = self.norm(x)  
 
         return x, residual, x_downsample
 

@@ -15,7 +15,7 @@ from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 # https://github.com/FanChiMao/SUNet
 
 
-class SwinTransformerBlock(nn.Module):
+class SwinTransformerBlockV2(nn.Module):
     """ Swin Transformer Block.
 
     Args:
@@ -644,7 +644,7 @@ class BasicLayer(nn.Module):
 
         # Create blocks
         self.blocks = nn.ModuleList([
-            SwinTransformerBlock(dim=dim, input_resolution=input_resolution,
+            SwinTransformerBlockV2(dim=dim, input_resolution=input_resolution,
                                  num_heads=num_heads, window_size=window_size,
                                  shift_size=0 if (i % 2 == 0) else window_size // 2,
                                  mlp_ratio=mlp_ratio,
@@ -696,7 +696,7 @@ class BasicLayerUp(nn.Module):
 
         # Create blocks
         self.blocks = nn.ModuleList([
-            SwinTransformerBlock(dim=dim, input_resolution=input_resolution,
+            SwinTransformerBlockV2(dim=dim, input_resolution=input_resolution,
                                  num_heads=num_heads, window_size=window_size,
                                  shift_size=0 if (i % 2 == 0) else window_size // 2,
                                  mlp_ratio=mlp_ratio,
